@@ -8,7 +8,7 @@ Class {
 	#package : 'SonarqubePharoAPI'
 }
 
-{ #category : 'as yet unclassified' }
+{ #category : 'api' }
 SonarqubeRessource >> getAll: itemName inEndpoint: endpoint withParams: paramsDict [
 
 	| items results page |
