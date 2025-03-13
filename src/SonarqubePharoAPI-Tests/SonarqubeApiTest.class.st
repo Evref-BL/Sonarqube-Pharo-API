@@ -14,7 +14,7 @@ SonarqubeApiTest >> testChangePharoDateTimeIntoSonarDateTime [
 	| date sonarqubeApi sonarDate |
 	
 	"Given"
-	date := DateAndTime year: 2025 month: 09 day:  26 hour: 13 minute: 35 second: 18.
+	date := '2025-09-26T13:35:18+00:00' asDateAndTime.
 	
 	sonarqubeApi := SonarqubeApi new.
 	
@@ -24,7 +24,7 @@ SonarqubeApiTest >> testChangePharoDateTimeIntoSonarDateTime [
 	
 	
 	"Then"
-	self assert: sonarDate equals: '2025-09-26T13:35:18+0100'.
+	self assert: sonarDate equals: '2025-09-26T13:35:18+0000'.
 	
 	
 ]
