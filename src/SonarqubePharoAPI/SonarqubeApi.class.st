@@ -23,6 +23,18 @@ SonarqubeApi >> basePath: anObject [
 	basePath := anObject
 ]
 
+{ #category : 'utilities' }
+SonarqubeApi >> changePharoDateTimeIntoSonarDateTime: aDateAndTime [
+	"change 2024-09-26T13:42:18+00:00 to 2024-09-26T13:42:18+0000"
+
+	| sonarDateAndTimeString |
+	^ sonarDateAndTimeString := (aDateAndTime printString
+		                             copyFrom: 1
+		                             to: 22) , (aDateAndTime printString
+		                             copyFrom: 24
+		                             to: aDateAndTime printString size)
+]
+
 { #category : 'accessing' }
 SonarqubeApi >> client [
 
@@ -49,6 +61,13 @@ SonarqubeApi >> initialize [
 			 yourself).
 			
 	basePath := 'api'
+]
+
+{ #category : 'ressources' }
+SonarqubeApi >> issues [
+	"https://next.sonarqube.com/sonarqube/web_api/api/issues"
+
+	^SonarqubeIssues new sonarqubeApi: self.
 ]
 
 { #category : 'private' }
