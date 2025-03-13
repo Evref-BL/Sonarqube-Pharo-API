@@ -19,7 +19,7 @@ Metacello new
 
 ### Client
 
-To start using the API, you need to create a client instance with your Soanrqube host and a pivate token for authentication. Here’s an example:
+To start using the API, you need to create a client instance with your Sonarqube host and a pivate token for authentication. Here’s an example:
 
 ```st
 sonarApi := SonarqubeApi new host: '<your sonarqube domain>.com';
