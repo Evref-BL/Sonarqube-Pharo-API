@@ -1,7 +1,7 @@
 # Sonarqube-Pharo-API
 
 [![Continuous](https://github.com/Evref-BL/Gitlab-Pharo-API/actions/workflows/continuous.yml/badge.svg)](https://github.com/Evref-BL/Sonarqube-Pharo-API/actions/workflows/continuous.yml)
-[![Coverage Status](https://coveralls.io/repos/github/Evref-BL/Sonarqube-Pharo-API/badge.svg?branch=ci-add-coverage)](https://coveralls.io/github/Evref-BL/Gitlab-Pharo-API?branch=develop)
+[![Coverage Status](https://coveralls.io/repos/github/Evref-BL/Sonarqube-Pharo-API/badge.svg?branch=develop)](https://coveralls.io/github/Evref-BL/Sonarqube-Pharo-API?branch=develop)
 
 This is a Pharo client for the [Sonarqube Web API](https://next.sonarqube.com/sonarqube/web_api)
 
