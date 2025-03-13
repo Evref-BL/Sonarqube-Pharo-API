@@ -34,5 +34,8 @@ BaselineOfSonarqubePharoAPI >> defineGroups: spec [
 BaselineOfSonarqubePharoAPI >> definePackages: spec [
 
 	spec package: 'SonarqubePharoAPI'.
-
+	
+	spec
+		package: 'SonarqubePharoAPI-Tests'
+		with: [ spec requires: #( 'SonarqubePharoAPI' 'Mocketry' ) ]
 ]
