@@ -68,3 +68,10 @@ SonarqubeApi >> privateToken: anObject [
 
 	privateToken := anObject
 ]
+
+{ #category : 'ressources' }
+SonarqubeApi >> projectAnalyses [
+	"https://next.sonarqube.com/sonarqube/web_api/api/project_analyses"
+
+	^SonarqubeProjectAnalyses new sonarqubeApi: self.
+]
