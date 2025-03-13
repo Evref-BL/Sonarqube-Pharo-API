@@ -30,6 +30,12 @@ SonarqubeApi >> client [
 ]
 
 { #category : 'accessing' }
+SonarqubeApi >> client: anObject [
+
+	client := anObject
+]
+
+{ #category : 'accessing' }
 SonarqubeApi >> host: anObject [
 
 	host := anObject
