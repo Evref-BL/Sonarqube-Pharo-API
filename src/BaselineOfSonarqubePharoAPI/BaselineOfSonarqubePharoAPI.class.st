@@ -1,6 +1,6 @@
 Class {
 	#name : 'BaselineOfSonarqubePharoAPI',
-	#superclass : 'Object',
+	#superclass : 'BaselineOf',
 	#category : 'BaselineOfSonarqubePharoAPI',
 	#package : 'BaselineOfSonarqubePharoAPI'
 }
