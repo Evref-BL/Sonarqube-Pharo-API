@@ -51,6 +51,13 @@ SonarqubeApi >> initialize [
 	basePath := 'api'
 ]
 
+{ #category : 'ressources' }
+SonarqubeApi >> issues [
+	"https://next.sonarqube.com/sonarqube/web_api/api/issues"
+
+	^SonarqubeIssues new sonarqubeApi: self.
+]
+
 { #category : 'private' }
 SonarqubeApi >> prepareClient [
 
