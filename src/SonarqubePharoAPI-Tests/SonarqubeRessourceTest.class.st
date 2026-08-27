@@ -11,114 +11,76 @@ Class {
 { #category : 'tests' }
 SonarqubeRessourceTest >> testGetAllInEndpointWithParams [
 
-	| hostUrl client endpoint params result response itemName item sonarqubeApi sonarqubeRessource |
+	| client endpoint params result item page1 page2 itemName sonarqubeApi resource |
 	"Given"
-	hostUrl := 'https://www.url.com'.
 	client := ZnClient new.
+	sonarqubeApi := SonarqubeApi new client: client.
+	resource := SonarqubeRessource new sonarqubeApi: sonarqubeApi.
 
-	sonarqubeApi := SonarqubeApi new
-		                privateToken: 'token';
-		                host: hostUrl;
-		                client: client.
-
-	endpoint := '/endpoint'.
-	params := { ('param' -> 'value') } asDictionary.
 	itemName := 'issues'.
+	endpoint := '/endpoint'.
+	params := Dictionary with: 'param' -> 'value'.
 
 	item := { (#id -> 1) } asDictionary.
+	page1 := Dictionary with: #page -> 1 with: itemName -> { item }.
+	page2 := Dictionary with: #page -> 2 with: itemName -> {  }. "Stops at empty page"
 
-	sonarqubeRessource := SonarqubeRessource new sonarqubeApi:
-		                      sonarqubeApi.
-
-	response := {
-		            (#page -> 4).
-		            (itemName -> {  }) } asDictionary.
-
-	client stub get willReturnYourself.
-	client stub response willReturn:
-		(ZnResponse ok: (ZnEntity json: (NeoJSONWriter toString: response))).
+	resource stub getWithRetries willReturnValueFrom:
+		((Array with: page1 with: page2) collect: [ :page |
+			 ZnResponse ok: (ZnEntity json: (NeoJSONWriter toString: page)) ]).
 
 	"When"
-	result := sonarqubeRessource
+	result := resource
 		          getAll: itemName
 		          inEndpoint: endpoint
 		          withParams: params.
 
 	"Then"
-	self assert: result size equals: 0
+	self assert: result size equals: 1.
+	self assert: result first equals: item
 ]
 
 { #category : 'tests' }
 SonarqubeRessourceTest >> testGetWithRetries [
 
-	| hostUrl client endpoint params itemName sonarqubeApi sonarqubeRessource description response stdout |
-	hostUrl := 'https://www.url.com'.
+	| client result response sonarqubeApi resource |
+	"Given"
 	client := ZnClient new.
+	sonarqubeApi := SonarqubeApi new client: client.
+	resource := SonarqubeRessource new sonarqubeApi: sonarqubeApi.
 
-	sonarqubeApi := SonarqubeApi new
-		                privateToken: 'token';
-		                host: hostUrl;
-		                client: client.
+	response := Dictionary with: #page -> 4 with: 'issues' -> #(  ).
+	response := NeoJSONWriter toString: response.
 
-	endpoint := '/endpoint'.
-	itemName := 'issues'.
-	params := Dictionary new.
-
-	sonarqubeRessource := SonarqubeRessource new sonarqubeApi:
-		                      sonarqubeApi.
-
-	stdout := String new writeStream.
-	description := 'Results are unavailable.'.
-	response := { ('errors'
-	             -> { { ('msg' -> description) } asDictionary }) }
-		            asDictionary.
-
-	sonarqubeRessource stub initialRetryDelay willReturn: 0 seconds.
-	sonarqubeRessource stub stdout willReturn: stdout.
 	client stub get willReturnYourself.
 	client stub response willReturn:
-		(ZnResponse serviceUnavailable: (NeoJSONWriter toString: response)).
+		(ZnResponse ok: (ZnEntity json: response)).
 
-	self
-		should: [
-			sonarqubeRessource
-				getAll: itemName
-				inEndpoint: endpoint
-				withParams: params ]
-		raise: Error
-		withExceptionDo: [ :error |
-			self assert: (error messageText includesSubstring: description) ].
+	"When"
+	result := resource getWithRetries.
 
-	"3 retries"
-	self assert: (stdout contents occurrencesOf: Character lf) equals: 3
+	"Then"
+	self assert: result contents equals: response
 ]
 
 { #category : 'tests' }
 SonarqubeRessourceTest >> testGetWithRetriesDoesNotRetryClientErrors [
 
-	| hostUrl client endpoint params itemName sonarqubeApi sonarqubeRessource description response stdout |
-	hostUrl := 'https://www.url.com'.
+	| client sonarqubeApi resource itemName endpoint params stdout description response |
 	client := ZnClient new.
+	sonarqubeApi := SonarqubeApi new client: client.
+	resource := SonarqubeRessource new sonarqubeApi: sonarqubeApi.
 
-	sonarqubeApi := SonarqubeApi new
-		                privateToken: 'token';
-		                host: hostUrl;
-		                client: client.
-
-	endpoint := '/endpoint'.
 	itemName := 'issues'.
+	endpoint := '/endpoint'.
 	params := Dictionary new.
-
-	sonarqubeRessource := SonarqubeRessource new sonarqubeApi:
-		                      sonarqubeApi.
 
 	stdout := String new writeStream.
 	description := 'Client is a potato.'.
-	response := { ('errors'
-	             -> { { ('msg' -> description) } asDictionary }) }
-		            asDictionary.
+	response := Dictionary with:
+		            'errors' -> { (Dictionary with: 'msg' -> description) }.
 
-	sonarqubeRessource stub stdout willReturn: stdout.
+	resource stub stdout willReturn: stdout.
 	client stub get willReturnYourself.
 	client stub response willReturn: (ZnResponse
 			 badRequest: nil
@@ -126,14 +88,45 @@ SonarqubeRessourceTest >> testGetWithRetriesDoesNotRetryClientErrors [
 
 	self
 		should: [
-			sonarqubeRessource
-				getAll: itemName
-				inEndpoint: endpoint
-				withParams: params ]
+		resource getAll: itemName inEndpoint: endpoint withParams: params ]
 		raise: Error
 		withExceptionDo: [ :error |
 			self assert: (error messageText includesSubstring: description) ].
 
 	"0 retries"
 	self assert: (stdout contents occurrencesOf: Character lf) equals: 0
+]
+
+{ #category : 'tests' }
+SonarqubeRessourceTest >> testGetWithRetriesServerErrors [
+
+	| client sonarqubeApi resource itemName endpoint params stdout description response |
+	client := ZnClient new.
+	sonarqubeApi := SonarqubeApi new client: client.
+	resource := SonarqubeRessource new sonarqubeApi: sonarqubeApi.
+
+	itemName := 'issues'.
+	endpoint := '/endpoint'.
+	params := Dictionary new.
+
+	stdout := String new writeStream.
+	description := 'Results are unavailable.'.
+	response := Dictionary with:
+		            'errors' -> { (Dictionary with: 'msg' -> description) }.
+
+	resource stub initialRetryDelay willReturn: 0 seconds.
+	resource stub stdout willReturn: stdout.
+	client stub get willReturnYourself.
+	client stub response willReturn:
+		(ZnResponse serviceUnavailable: (NeoJSONWriter toString: response)).
+
+	self
+		should: [
+		resource getAll: itemName inEndpoint: endpoint withParams: params ]
+		raise: Error
+		withExceptionDo: [ :error |
+			self assert: (error messageText includesSubstring: description) ].
+
+	"3 retries"
+	self assert: (stdout contents occurrencesOf: Character lf) equals: 3
 ]

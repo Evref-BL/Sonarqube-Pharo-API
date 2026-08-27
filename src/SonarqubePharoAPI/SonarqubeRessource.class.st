@@ -40,7 +40,7 @@ SonarqubeRessource >> getAll: itemName inEndpoint: endpoint withParams: paramsDi
 	[
 	| newItems response results |
 	response := self getWithRetries.
-	response status ~= 200 ifTrue: [ self errorResponse: response ].
+	response isError ifTrue: [ self errorResponse: response ].
 
 	results := NeoJSONReader fromString: response contents.
 	newItems := results at: itemName.
