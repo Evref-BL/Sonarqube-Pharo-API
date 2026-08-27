@@ -92,3 +92,48 @@ SonarqubeRessourceTest >> testGetWithRetries [
 	"3 retries"
 	self assert: (stdout contents occurrencesOf: Character lf) equals: 3
 ]
+
+{ #category : 'tests' }
+SonarqubeRessourceTest >> testGetWithRetriesDoesNotRetryClientErrors [
+
+	| hostUrl client endpoint params itemName sonarqubeApi sonarqubeRessource description response stdout |
+	hostUrl := 'https://www.url.com'.
+	client := ZnClient new.
+
+	sonarqubeApi := SonarqubeApi new
+		                privateToken: 'token';
+		                host: hostUrl;
+		                client: client.
+
+	endpoint := '/endpoint'.
+	itemName := 'issues'.
+	params := Dictionary new.
+
+	sonarqubeRessource := SonarqubeRessource new sonarqubeApi:
+		                      sonarqubeApi.
+
+	stdout := String new writeStream.
+	description := 'Client is a potato.'.
+	response := { ('errors'
+	             -> { { ('msg' -> description) } asDictionary }) }
+		            asDictionary.
+
+	sonarqubeRessource stub stdout willReturn: stdout.
+	client stub get willReturnYourself.
+	client stub response willReturn: (ZnResponse
+			 badRequest: nil
+			 entity: (ZnEntity text: (NeoJSONWriter toString: response))).
+
+	self
+		should: [
+			sonarqubeRessource
+				getAll: itemName
+				inEndpoint: endpoint
+				withParams: params ]
+		raise: Error
+		withExceptionDo: [ :error |
+			self assert: (error messageText includesSubstring: description) ].
+
+	"0 retries"
+	self assert: (stdout contents occurrencesOf: Character lf) equals: 0
+]

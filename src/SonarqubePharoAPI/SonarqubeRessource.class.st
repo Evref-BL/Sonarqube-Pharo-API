@@ -66,19 +66,19 @@ SonarqubeRessource >> getWithRetries [
 	[
 	sonarqubeApi client get.
 	response := sonarqubeApi client response.
-	response status ~= 200 and: [ retryCount < numberOfRetries ] ]
-		whileTrue: [
-			| stdout |
-			retryCount := retryCount + 1.
+	(response status between: 500 and: 599) and: [
+		retryCount < numberOfRetries ] ] whileTrue: [
+		| stdout |
+		retryCount := retryCount + 1.
 
-			(stdout := self stdout) << 'Retrying SonarQube API request in '.
-			retryDelay printHumanReadableOn: stdout.
-			stdout << ' (' << retryCount asString << '/'
-			<< numberOfRetries asString << ')'.
-			stdout lf.
+		(stdout := self stdout) << 'Retrying SonarQube API request in '.
+		retryDelay printHumanReadableOn: stdout.
+		stdout << ' (' << retryCount asString << '/'
+		<< numberOfRetries asString << ')'.
+		stdout lf.
 
-			retryDelay wait.
-			retryDelay := retryDelay * 2 ].
+		retryDelay wait.
+		retryDelay := retryDelay * 2 ].
 
 	^ response
 ]
