@@ -8,10 +8,26 @@ Class {
 	#package : 'SonarqubePharoAPI'
 }
 
+{ #category : 'error handling' }
+SonarqubeRessource >> errorResponse: response [
+
+	| reason msg |
+	reason := (NeoJSONReader fromString: response contents)
+		          at: 'errors'
+		          ifPresent: [ :errors | errors first at: 'msg' ].
+
+	msg := String streamContents: [ :s |
+		       s << 'SonarQube API error '.
+		       s print: response status.
+		       reason ifNotNil: [ s << ': ' << reason ] ].
+
+	Error signal: msg
+]
+
 { #category : 'api' }
 SonarqubeRessource >> getAll: itemName inEndpoint: endpoint withParams: paramsDict [
 
-	| items results page |
+	| items page |
 	sonarqubeApi prepareClient.
 	sonarqubeApi client path: sonarqubeApi basePath , endpoint.
 
@@ -22,25 +38,65 @@ SonarqubeRessource >> getAll: itemName inEndpoint: endpoint withParams: paramsDi
 	page := 1.
 
 	[
-	| newItems |
-	"Sonarqube api can't return more than 10000 values"
-	items size = 10000 ifTrue: [ ^ items ].
+	| newItems response results |
+	response := self getWithRetries.
+	response isError ifTrue: [ self errorResponse: response ].
 
-	results := sonarqubeApi client get.
-	results := (NeoJSONReader on: results readStream) next.
+	results := NeoJSONReader fromString: response contents.
 	newItems := results at: itemName.
 	items addAll: newItems.
 
 	page := page + 1.
 	sonarqubeApi client queryAt: #p put: page.
 
-	newItems isNotEmpty ] whileTrue.
+	"SonarQube api can't return more than 10000 values"
+	newItems isEmpty or: [ items size = 10000 ] ] whileFalse.
 
 	^ items
+]
+
+{ #category : 'api' }
+SonarqubeRessource >> getWithRetries [
+
+	| numberOfRetries retryCount retryDelay response |
+	numberOfRetries := 3.
+	retryCount := 0.
+	retryDelay := self initialRetryDelay.
+
+	[
+	sonarqubeApi client get.
+	response := sonarqubeApi client response.
+	(response status between: 500 and: 599) and: [
+		retryCount < numberOfRetries ] ] whileTrue: [
+		| stdout |
+		retryCount := retryCount + 1.
+
+		(stdout := self stdout) << 'Retrying SonarQube API request in '.
+		retryDelay printHumanReadableOn: stdout.
+		stdout << ' (' << retryCount asString << '/'
+		<< numberOfRetries asString << ')'.
+		stdout lf.
+
+		retryDelay wait.
+		retryDelay := retryDelay * 2 ].
+
+	^ response
+]
+
+{ #category : 'constants' }
+SonarqubeRessource >> initialRetryDelay [
+
+	^ 1 minute
 ]
 
 { #category : 'accessing' }
 SonarqubeRessource >> sonarqubeApi: anObject [
 
 	sonarqubeApi := anObject
+]
+
+{ #category : 'constants' }
+SonarqubeRessource >> stdout [
+
+	^ Stdio stdout
 ]
