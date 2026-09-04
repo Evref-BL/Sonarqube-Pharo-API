@@ -66,16 +66,18 @@ SonarqubeRessource >> getWithRetries [
 	[
 	sonarqubeApi client get.
 	response := sonarqubeApi client response.
+
 	(response status between: 500 and: 599) and: [
-		retryCount < numberOfRetries ] ] whileTrue: [
-		| stdout |
+		retryCount < numberOfRetries ] ] whileTrue: [ "Retry server errors"
 		retryCount := retryCount + 1.
 
-		(stdout := self stdout) << 'Retrying SonarQube API request in '.
-		retryDelay printHumanReadableOn: stdout.
-		stdout << ' (' << retryCount asString << '/'
-		<< numberOfRetries asString << ')'.
-		stdout lf.
+		"Stdout is not compatible with the API used in #printHumanReadableOn:"
+		self stdout << (String streamContents: [ :stream |
+			 stream << 'Retrying SonarQube API request in '.
+			 retryDelay printHumanReadableOn: stream.
+			 stream << ' (' << retryCount asString << '/'
+			 << numberOfRetries asString << ')'.
+			 stream lf ]).
 
 		retryDelay wait.
 		retryDelay := retryDelay * 2 ].
