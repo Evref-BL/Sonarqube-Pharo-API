@@ -98,6 +98,27 @@ SonarqubeRessourceTest >> testGetWithRetriesDoesNotRetryClientErrors [
 ]
 
 { #category : 'tests' }
+SonarqubeRessourceTest >> testGetWithRetriesPrintsToStandardIOStream [
+
+	| client sonarqubeApi resource response |
+	client := ZnClient new.
+	sonarqubeApi := SonarqubeApi new client: client.
+	resource := SonarqubeRessource new sonarqubeApi: sonarqubeApi.
+
+	"Need to be nonzero to exercise the stream fully"
+	resource stub initialRetryDelay willReturn: 1 nanoSecond.
+
+	client stub get willReturnYourself.
+	client stub response willReturn:
+		(ZnResponse statusLine: ZnStatusLine internalServerError).
+
+	self
+		shouldnt: [ response := resource getWithRetries ]
+		raise: Exception.
+	self assert: response isError
+]
+
+{ #category : 'tests' }
 SonarqubeRessourceTest >> testGetWithRetriesServerErrors [
 
 	| client sonarqubeApi resource itemName endpoint params stdout description response |
