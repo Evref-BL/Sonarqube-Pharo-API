@@ -72,12 +72,14 @@ SonarqubeRessource >> getWithRetries [
 		retryCount := retryCount + 1.
 
 		"Stdout is not compatible with the API used in #printHumanReadableOn:"
-		self stdout << (String streamContents: [ :stream |
-			 stream << 'Retrying SonarQube API request in '.
-			 retryDelay printHumanReadableOn: stream.
-			 stream << ' (' << retryCount asString << '/'
-			 << numberOfRetries asString << ')'.
-			 stream lf ]).
+		self stdout
+			<< (String streamContents: [ :stream |
+						 stream << 'Retrying SonarQube API request in '.
+						 retryDelay printHumanReadableOn: stream.
+						 stream << ' (' << retryCount asString << '/'
+						 << numberOfRetries asString << ')'.
+						 stream lf ]);
+			flush.
 
 		retryDelay wait.
 		retryDelay := retryDelay * 2 ].
