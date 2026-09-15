@@ -9,6 +9,39 @@ Class {
 }
 
 { #category : 'tests' }
+SonarqubeRessourceTest >> testErrorResponse [
+
+	| resource reason contents |
+	resource := SonarqubeRessource new.
+	reason := 'Taking a break.'.
+	contents := NeoJSONWriter toString:
+		            (Dictionary with:
+			             'errors' -> { (Dictionary with: 'msg' -> reason) }).
+
+	self
+		should: [
+			resource errorResponse:
+				(ZnResponse serverErrorWithEntity: (ZnStringEntity json: contents)) ]
+		raise: Error
+		withExceptionDo: [ :error |
+		self assert: (error messageText endsWith: reason) ]
+]
+
+{ #category : 'tests' }
+SonarqubeRessourceTest >> testErrorResponseWithoutContents [
+
+	| resource |
+	resource := SonarqubeRessource new.
+
+	self
+		should: [
+		resource errorResponse: (ZnResponse unauthorized: nil entity: nil) ]
+		raise: Error
+		withExceptionDo: [ :error |
+		self assert: (error messageText endsWith: 'Unauthorized') ]
+]
+
+{ #category : 'tests' }
 SonarqubeRessourceTest >> testGetAllInEndpointWithParams [
 
 	| client endpoint params result item page1 page2 itemName sonarqubeApi resource |
