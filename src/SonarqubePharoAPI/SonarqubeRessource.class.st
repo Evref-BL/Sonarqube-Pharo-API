@@ -11,15 +11,17 @@ Class {
 { #category : 'error handling' }
 SonarqubeRessource >> errorResponse: response [
 
+	<debuggerCompleteToSender>
 	| reason msg |
-	reason := (NeoJSONReader fromString: response contents)
-		          at: 'errors'
-		          ifPresent: [ :errors | errors first at: 'msg' ].
+	reason := response contents ifNotNil: [ :contents |
+		          (NeoJSONReader fromString: contents)
+			          at: 'errors'
+			          ifPresent: [ :errors | errors first at: 'msg' ] ].
 
 	msg := String streamContents: [ :s |
 		       s << 'SonarQube API error '.
 		       s print: response status.
-		       reason ifNotNil: [ s << ': ' << reason ] ].
+		       s << ': ' << (reason ifNil: [ response statusLine reason ]) ].
 
 	Error signal: msg
 ]
