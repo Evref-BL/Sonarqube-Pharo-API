@@ -1,0 +1,14 @@
+.github/workflows/continuous.yml
+  h_ef6223c7e94c9f 20,33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3a74569300c6a48fc06ab1a0a2f36e396ab0387e",
+  "prompts": {},
+  "humans": {
+    "h_ef6223c7e94c9f": {
+      "author": "Kilian B <60846047+knowbased@users.noreply.github.com>"
+    }
+  }
+}
